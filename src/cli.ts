@@ -1,4 +1,4 @@
-import { CertificateStore } from "./db.ts";
+import { CertificateStore, type UpdateCertificateInput } from "./db.ts";
 import { extractCertificateMetadata, readPfxFile } from "./certificates.ts";
 import { startServer } from "./server.ts";
 
@@ -101,7 +101,7 @@ export async function runCli(argv = process.argv.slice(2)) {
 
     if (action === "update") {
       const id = Number(requireString(flags, "id"));
-      const update: any = {};
+      const update: UpdateCertificateInput = {};
 
       if (typeof flags.name === "string") update.name = flags.name;
       if (typeof flags.password === "string") update.password = flags.password;

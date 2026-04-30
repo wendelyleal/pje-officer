@@ -1,5 +1,5 @@
 import type { Server } from "bun";
-import { CertificateStore, type CertificateRecord } from "./db.ts";
+import { CertificateStore, type CertificateRecord, type UpdateCertificateInput } from "./db.ts";
 import { extractCertificateMetadata, isCertificateValidNow } from "./certificates.ts";
 
 const SUCCESS_GIF = Buffer.from("R0lGODlhAQABAPAAAEz/AAAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==", "base64");
@@ -29,6 +29,13 @@ function json(data: unknown, status = 200) {
     status,
     headers: { "content-type": "application/json" },
   });
+}
+
+function readErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return "Request failed";
 }
 
 function parseTask(url: URL) {
@@ -104,7 +111,7 @@ export function startServer(options: StartServerOptions = {}): { server: Server;
             });
             return withCors(json(toPublicCertificate(created), 201));
           } catch (error) {
-            return withCors(json({ error: String(error) }, 400));
+            return withCors(json({ error: readErrorMessage(error) }, 400));
           }
         }
       }
@@ -121,7 +128,7 @@ export function startServer(options: StartServerOptions = {}): { server: Server;
         if (req.method === "PUT") {
           try {
             const body = await readBody(req) as { name?: string; password?: string; pfxBase64?: string };
-            const update: any = { name: body.name, password: body.password };
+            const update: UpdateCertificateInput = { name: body.name, password: body.password };
 
             if (body.pfxBase64) {
               const pfx = Buffer.from(body.pfxBase64, "base64");
@@ -135,7 +142,7 @@ export function startServer(options: StartServerOptions = {}): { server: Server;
             }
             return withCors(json(toPublicCertificate(updated)));
           } catch (error) {
-            return withCors(json({ error: String(error) }, 400));
+            return withCors(json({ error: readErrorMessage(error) }, 400));
           }
         }
       }
