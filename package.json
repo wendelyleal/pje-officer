@@ -1,0 +1,19 @@
+{
+  "name": "pje-officer",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run src/index.ts serve",
+    "start": "bun run src/index.ts serve",
+    "build": "bun build src/index.ts --outfile dist/pje-officer.js --target bun",
+    "test": "bun test",
+    "cli": "bun run src/index.ts",
+    "ui:dev": "cd ui && bun run dev",
+    "ui:build": "cd ui && bun run build"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.9.3"
+  }
+}
