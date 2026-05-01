@@ -38,6 +38,12 @@ function readErrorMessage(error: unknown) {
   return "Request failed";
 }
 
+function readOptionalText(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
 function parseTask(url: URL) {
   const raw = url.searchParams.get("r");
   if (!raw) return null;
@@ -100,13 +106,20 @@ export function startServer(options: StartServerOptions = {}): { server: Server;
 
         if (req.method === "POST") {
           try {
-            const body = await readBody(req) as { name: string; password: string; pfxBase64: string };
-            const pfx = Buffer.from(body.pfxBase64, "base64");
-            const metadata = await extractCertificateMetadata(pfx, body.password);
+            const body = await readBody(req) as { name?: string; password?: string; pfxBase64?: string };
+            const name = readOptionalText(body.name);
+            const password = readOptionalText(body.password);
+            const pfxBase64 = readOptionalText(body.pfxBase64);
+            if (!name || !password || !pfxBase64) {
+              throw new Error("name, password and pfxBase64 are required");
+            }
+
+            const pfx = Buffer.from(pfxBase64, "base64");
+            const metadata = await extractCertificateMetadata(pfx, password);
             const created = store.create({
-              name: body.name,
+              name,
               pfx,
-              password: body.password,
+              password,
               ...metadata,
             });
             return withCors(json(toPublicCertificate(created), 201));
@@ -126,14 +139,29 @@ export function startServer(options: StartServerOptions = {}): { server: Server;
         }
 
         if (req.method === "PUT") {
+          const current = store.findById(id);
+          if (!current) {
+            return withCors(json({ error: "Certificate not found" }, 404));
+          }
+
           try {
             const body = await readBody(req) as { name?: string; password?: string; pfxBase64?: string };
-            const update: UpdateCertificateInput = { name: body.name, password: body.password };
+            const name = readOptionalText(body.name);
+            const password = readOptionalText(body.password);
+            const pfxBase64 = readOptionalText(body.pfxBase64);
+            const update: UpdateCertificateInput = {};
 
-            if (body.pfxBase64) {
-              const pfx = Buffer.from(body.pfxBase64, "base64");
-              const metadata = await extractCertificateMetadata(pfx, body.password ?? store.findById(id)?.password ?? "");
+            if (name) update.name = name;
+            if (password) update.password = password;
+
+            if (pfxBase64) {
+              const pfx = Buffer.from(pfxBase64, "base64");
+              const metadata = await extractCertificateMetadata(pfx, password ?? current.password);
               Object.assign(update, { pfx, ...metadata });
+            }
+
+            if (Object.keys(update).length === 0) {
+              return withCors(json({ error: "No fields to update" }, 400));
             }
 
             const updated = store.update(id, update);
