@@ -2,6 +2,14 @@
 
 Minimal Bun implementation that emulates the browser-facing `pjeoffice-pro` local server for **certificate validation only**.
 
+## Monorepo layout
+
+- `packages/api/` - backend API and CLI
+- `packages/web/` - React web app
+- `scripts/dev.ts` - starts API + web in development
+- `scripts/serve.ts` - runs API server for production usage
+- `docs/` - project documentation
+
 ## What is implemented
 
 - Bun local server with `pjeoffice-pro` compatible endpoints:
@@ -34,13 +42,13 @@ Minimal Bun implementation that emulates the browser-facing `pjeoffice-pro` loca
 
 ```bash
 bun install
-cd ui && bun install && cd ..
+cd packages/web && bun install && cd ..
 ```
 
 ## Run server
 
 ```bash
-bun run src/index.ts serve --port 8800 --db ./data/pje-officer.sqlite
+bun run scripts/serve.ts --port 8800 --db ./data/pje-officer.sqlite
 ```
 
 Server endpoint base: `http://127.0.0.1:8800/pjeOffice/`
@@ -50,41 +58,35 @@ Server endpoint base: `http://127.0.0.1:8800/pjeOffice/`
 Add certificate:
 
 ```bash
-bun run src/index.ts cert add --name "Meu A1" --file /path/certificado.pfx --password "senha"
+bun run packages/api/src/index.ts cert add --name "Meu A1" --file /path/certificado.pfx --password "senha"
 ```
 
 List certificates:
 
 ```bash
-bun run src/index.ts cert list
+bun run packages/api/src/index.ts cert list
 ```
 
 Update certificate:
 
 ```bash
-bun run src/index.ts cert update --id 1 --name "Novo Nome"
+bun run packages/api/src/index.ts cert update --id 1 --name "Novo Nome"
 # With new file/password
-bun run src/index.ts cert update --id 1 --file /path/novo.pfx --password "nova-senha"
+bun run packages/api/src/index.ts cert update --id 1 --file /path/novo.pfx --password "nova-senha"
 ```
 
 Remove certificate:
 
 ```bash
-bun run src/index.ts cert remove --id 1
+bun run packages/api/src/index.ts cert remove --id 1
 ```
 
 ## UI (demo/config)
 
-Start server in one terminal:
+Start everything (API + UI) in one terminal:
 
 ```bash
-bun run src/index.ts serve
-```
-
-Start UI in another terminal:
-
-```bash
-bun run ui:dev
+bun run dev
 ```
 
 Open: `http://127.0.0.1:5173`
@@ -97,5 +99,5 @@ UI state is URL-based via nuqs (`search`, `selected`, `add`, `edit`).
 bun test
 bun run build
 bun run ui:build
-cd ui && bun run lint
+bun run ui:lint
 ```

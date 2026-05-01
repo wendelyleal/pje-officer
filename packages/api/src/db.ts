@@ -1,4 +1,6 @@
 import { Database } from "bun:sqlite";
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 
 export type CertificateRecord = {
   id: number;
@@ -39,6 +41,7 @@ export class CertificateStore {
   readonly db: Database;
 
   constructor(dbPath = DEFAULT_DB_PATH) {
+    mkdirSync(dirname(dbPath), { recursive: true });
     this.db = new Database(dbPath, { create: true });
     this.migrate();
   }

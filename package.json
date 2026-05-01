@@ -4,13 +4,14 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun run src/index.ts serve",
-    "start": "bun run src/index.ts serve",
-    "build": "bun build src/index.ts --outfile dist/pje-officer.js --target bun",
-    "test": "bun test",
-    "cli": "bun run src/index.ts",
-    "ui:dev": "cd ui && bun run dev",
-    "ui:build": "cd ui && bun run build"
+    "dev": "bun run scripts/dev.ts",
+    "start": "bun run scripts/serve.ts",
+    "build": "bun build packages/api/src/index.ts --outfile dist/pje-officer.js --target bun && cd packages/web && bun run build",
+    "test": "cd packages/api && bun test",
+    "cli": "bun run packages/api/src/index.ts",
+    "ui:dev": "cd packages/web && bun run dev",
+    "ui:build": "cd packages/web && bun run build",
+    "ui:lint": "cd packages/web && bun run lint"
   },
   "devDependencies": {
     "@types/bun": "latest",
