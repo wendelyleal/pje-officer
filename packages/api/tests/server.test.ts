@@ -107,3 +107,65 @@ describe("pjeoffice compatibility endpoints", () => {
     expect(result.cadeia).toHaveLength(1);
   });
 });
+
+describe("certificate api endpoints", () => {
+  function addValidCertificate(ctx: ReturnType<typeof startServer>) {
+    return ctx.store.create({
+      name: "Test A1",
+      pfx: new Uint8Array([1, 2, 3]),
+      password: "123",
+      subject: "CN=Test A1",
+      issuer: "CN=Test Issuer",
+      validFrom: "2024-01-01T00:00:00.000Z",
+      validTo: "2035-01-01T00:00:00.000Z",
+    });
+  }
+
+  it("updates name without clearing existing password when password is blank", async () => {
+    const ctx = startServer({ port: 0, dbPath: `/tmp/pje-officer-${randomUUID()}.sqlite` });
+    running.push(ctx);
+    const created = addValidCertificate(ctx);
+
+    const response = await fetch(`http://${ctx.server.hostname}:${ctx.server.port}/api/certificates/${created.id}/`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: "Renamed", password: "   ", pfxBase64: "" }),
+    });
+
+    expect(response.status).toBe(200);
+    const updated = await response.json();
+    expect(updated.name).toBe("Renamed");
+    expect(ctx.store.findById(created.id)?.password).toBe("123");
+  });
+
+  it("returns 400 when update request has no effective fields", async () => {
+    const ctx = startServer({ port: 0, dbPath: `/tmp/pje-officer-${randomUUID()}.sqlite` });
+    running.push(ctx);
+    const created = addValidCertificate(ctx);
+
+    const response = await fetch(`http://${ctx.server.hostname}:${ctx.server.port}/api/certificates/${created.id}/`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: " ", password: "   ", pfxBase64: "" }),
+    });
+
+    expect(response.status).toBe(400);
+    const payload = await response.json();
+    expect(payload.error).toContain("No fields to update");
+  });
+
+  it("returns 404 for missing certificate before parsing pfx payload", async () => {
+    const ctx = startServer({ port: 0, dbPath: `/tmp/pje-officer-${randomUUID()}.sqlite` });
+    running.push(ctx);
+
+    const response = await fetch(`http://${ctx.server.hostname}:${ctx.server.port}/api/certificates/999/`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ pfxBase64: "AQID", password: "123" }),
+    });
+
+    expect(response.status).toBe(404);
+    const payload = await response.json();
+    expect(payload.error).toContain("Certificate not found");
+  });
+});
