@@ -15,5 +15,5 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true
   },
-  "include": ["src", "tests"]
+  "include": ["packages/api/src", "packages/api/tests", "scripts"]
 }

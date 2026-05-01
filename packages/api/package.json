@@ -1,0 +1,10 @@
+{
+  "name": "@pje-officer/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/index.ts serve",
+    "serve": "bun run src/index.ts serve",
+    "test": "bun test"
+  }
+}

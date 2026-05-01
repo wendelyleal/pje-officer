@@ -64,11 +64,11 @@ export async function runCli(argv = process.argv.slice(2)) {
 
   if (group !== "cert") {
     console.log(`Usage:
-  bun run src/index.ts serve [--host 127.0.0.1] [--port 8800] [--db ./data/pje-officer.sqlite]
-  bun run src/index.ts cert add --name NAME --file CERT.pfx --password PASS [--db PATH]
-  bun run src/index.ts cert list [--db PATH]
-  bun run src/index.ts cert update --id N [--name NAME] [--file CERT.pfx] [--password PASS] [--db PATH]
-  bun run src/index.ts cert remove --id N [--db PATH]`);
+  bun run packages/api/src/index.ts serve [--host 127.0.0.1] [--port 8800] [--db ./data/pje-officer.sqlite]
+  bun run packages/api/src/index.ts cert add --name NAME --file CERT.pfx --password PASS [--db PATH]
+  bun run packages/api/src/index.ts cert list [--db PATH]
+  bun run packages/api/src/index.ts cert update --id N [--name NAME] [--file CERT.pfx] [--password PASS] [--db PATH]
+  bun run packages/api/src/index.ts cert remove --id N [--db PATH]`);
     return;
   }
 
